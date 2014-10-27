@@ -1,6 +1,7 @@
 import pathlib
 from optparse import make_option
 
+from django.conf import settings
 from django.core.management.base import NoArgsCommand
 
 from kalite_handler import lib
@@ -13,11 +14,15 @@ def build_kalite(target):
     print "Generating pyo files"
     lib.generate_pyo_files(target)
 
+    print "disabling i18n"
+    lib.append_to_local_settings(target, "USE_I18N = False")
+    lib.append_to_local_settings(target, "USE_L10N = False")
+
+    print "Disable DEBUG mode"
+    lib.append_to_local_settings(target, "DEBUG = False")
+
     print "Deleting some blacklisted files"
     lib.delete_blacklisted_files(target)
-
-    print "Putting in dummy test files"
-    lib.insert_dummy_fle_utils_testing_file(target)
 
     print "Collecting static files"
     lib.collectstatic(target)
@@ -29,8 +34,10 @@ def build_kalite(target):
     # print "Deleting the .py files"
     # lib.delete_py_files(target)
 
-    import pdb; pdb.set_trace()
-    print 1
+    print "Zipping up everything"
+    outpath = pathlib.Path(settings.BASE_DIR) / "kalite"
+    # zip up the tmp directory by getting kalite's grandparent
+    lib.zip_directory(target.parent.parent, out=outpath)
 
 
 class Command(NoArgsCommand):

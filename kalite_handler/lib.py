@@ -137,8 +137,21 @@ def delete_blacklisted_files(branch_or_directory, removejuststatic=False):
                 try:
                     path_to_delete.unlink()
                 except OSError:
-                    os.system("rm -rf %s"  % str(path_to_delete))
+                    os.system("rm -rf %s" % str(path_to_delete))
                 print "{} deleted!".format(str(path_to_delete))
+
+
+def append_to_local_settings(dir, line):
+    with inside_kalite_directory(dir) as kalite_path:
+        local_settings_path = kalite_path / "local_settings.py"
+
+        with open(str(local_settings_path), "a") as f:
+            f.write(line)
+            f.write("\n")
+
+
+def zip_directory(dir, out):
+    shutil.make_archive(str(out), format="zip", root_dir=str(dir))
 
 
 def delete_py_files(dir):
