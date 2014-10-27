@@ -147,5 +147,5 @@ def delete_py_files(dir):
 
         for pyfile in root.rglob("*.py"):
             # don't delete any settings file, btw
-            if not "settings.py" in str(pyfile):
+            if "settings.py" not in str(pyfile):
                 pyfile.unlink()
