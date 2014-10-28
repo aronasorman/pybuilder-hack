@@ -1,13 +1,14 @@
+import os
 import pathlib
+import shutil
 from optparse import make_option
 
-from django.conf import settings
 from django.core.management.base import NoArgsCommand
 
 from kalite_handler import lib
 
 
-def build_kalite(target):
+def build_kalite(target, outpath, output_directory=False):
     print "Marking the directory as built by the build process"
     lib.mark_as_built(target)
 
@@ -18,7 +19,7 @@ def build_kalite(target):
     lib.append_to_local_settings(target, "USE_I18N = False")
     lib.append_to_local_settings(target, "USE_L10N = False")
 
-    print "Disable DEBUG mode"
+    print "Disabling DEBUG mode"
     lib.append_to_local_settings(target, "DEBUG = False")
 
     print "Deleting some blacklisted files"
@@ -34,10 +35,19 @@ def build_kalite(target):
     # print "Deleting the .py files"
     # lib.delete_py_files(target)
 
-    print "Zipping up everything"
-    outpath = pathlib.Path(settings.BASE_DIR) / "kalite"
+    print "Pregenerating the database"
+    lib.generate_db(target)
+
     # zip up the tmp directory by getting kalite's grandparent
-    lib.zip_directory(target.parent.parent, out=outpath)
+    top_build_directory = target.parent.parent
+
+    outpath = outpath / "ka-lite"
+    if output_directory:
+        print "Copying built KA Lite to {}".format(outpath)
+        shutil.copytree(str(top_build_directory), str(outpath))
+    else:
+        print "Zipping up everything"
+        lib.zip_directory(top_build_directory, out=outpath)
 
 
 class Command(NoArgsCommand):
@@ -49,7 +59,15 @@ class Command(NoArgsCommand):
         make_option("--directory", "-d",
                     action="store",
                     dest="directory",
-                    help="the directory to build from")
+                    help="the directory to build from"),
+        make_option("--out", "",
+                    action="store",
+                    dest="out",
+                    default=os.getcwd(),
+                    help="The directory in which to place the processed zip/directory"),
+        make_option("--output-directory", "",
+                    action="store_true",
+                    dest="output_directory")
     )
 
     def handle(*args, **kwargs):
@@ -60,4 +78,8 @@ class Command(NoArgsCommand):
             assert pathlib.Path(kwargs["directory"]).exists(), "given path does not exist"
 
             with lib.temp_kalite_directory(kwargs["directory"]) as dir:
-                build_kalite(dir)
+                build_kalite(
+                    dir,
+                    pathlib.Path(kwargs["out"]),
+                    output_directory=kwargs["output_directory"],
+                )

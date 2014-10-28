@@ -105,6 +105,15 @@ def call_command(branch_or_directory, command):
         return out
 
 
+def generate_db(kalite_dir):
+    # delete the old db first, if any
+    old_db = kalite_dir / "database" / "data.sqlite"
+    if old_db.exists():
+        old_db.unlink()
+
+    call_command(kalite_dir, ["syncdb", "--migrate", "--noinput"])
+
+
 def collectstatic(branch_or_directory):
     with inside_kalite_directory(branch_or_directory) as kalite_path:
         command = ["collectstatic", "--noinput"]
