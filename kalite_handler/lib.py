@@ -1,6 +1,7 @@
 import StringIO
 import compileall
 import contextlib
+import json
 import os
 import pathlib
 import requests
@@ -157,6 +158,15 @@ def append_to_local_settings(dir, line):
         with open(str(local_settings_path), "a") as f:
             f.write(line)
             f.write("\n")
+
+
+def create_default_facility(dir, attrs=None):
+    with inside_kalite_directory(dir) as kalite_path:
+        attrs = attrs if attrs else {"name": "default facility"}
+        command = ["createmodel",
+                   "kalite.facility.models.Facility"]
+        command += ["--data", json.dumps(attrs)]
+        call_command(kalite_path, command)
 
 
 def zip_directory(dir, out):

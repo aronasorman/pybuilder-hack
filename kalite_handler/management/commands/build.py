@@ -38,6 +38,9 @@ def build_kalite(target, outpath, output_directory=False):
     print "Pregenerating the database"
     lib.generate_db(target)
 
+    print "Adding in a default facility"
+    lib.create_default_facility(target)
+
     # zip up the tmp directory by getting kalite's grandparent
     top_build_directory = target.parent.parent
 
